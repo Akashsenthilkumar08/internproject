@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detection History - AI Detection App</title>
+  <meta name="description" content="View all your previous AI image detections with confidence scores." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <div id="sidebar"></div>
+    <main class="main-content" data-page="history">
+      <div class="page-header">
+        <div>
+          <h1>📜 Detection History</h1>
+          <p class="page-header-sub">Manage and search all your past detection results</p>
+        </div>
+        <button class="btn-danger" id="clearHistoryBtn">🗑 Clear All History</button>
+      </div>
+
+      <!-- Controls -->
+      <div class="history-controls">
+        <div class="history-search-wrap">
+          <span class="history-search-icon">🔍</span>
+          <input type="text" id="historySearch" placeholder="Search detections..." />
+        </div>
+        <select class="history-select" id="historyFilter">
+          <option value="all">All Images</option>
+          <option value="real">Real Images</option>
+          <option value="ai">AI Generated Images</option>
+          <option value="today">Today</option>
+          <option value="week">This Week</option>
+          <option value="month">This Month</option>
+        </select>
+        <select class="history-select" id="historySort">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="confidence_high">Highest Confidence</option>
+          <option value="confidence_low">Lowest Confidence</option>
+        </select>
+      </div>
+
+      <div id="historyContent">
+        <!-- Table or empty state injected by JS -->
+      </div>
+    </main>
+  </div>
+
+  <!-- Detection Details Modal -->
+  <div class="modal-overlay" id="detailsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Detection Details</h2>
+        <button class="modal-close" id="closeModalBtn">&times;</button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        
+        <!-- Stats Row -->
+        <div class="detect-panel" style="padding: 16px;">
+          <div class="stats-row" style="border-bottom: none; padding: 0;">
+            <div>
+              <span class="stats-label">Prediction: </span>
+              <span class="result-badge" id="modalPrediction">--</span>
+            </div>
+            <div>
+              <span class="stats-label">Confidence: </span>
+              <span class="stats-val" id="modalConfidence">--</span>
+            </div>
+            <div>
+              <span class="stats-label">Date: </span>
+              <span class="stats-val" style="font-size:0.9rem;" id="modalDate">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Images Grid -->
+        <div class="detect-grid-2">
+          <div>
+            <p style="font-size:0.8rem; color:var(--text-secondary); text-align:center; margin-bottom:8px;">Original Image</p>
+            <div class="img-wrap" style="min-height: 200px;">
+              <img id="modalOriginalImg" src="" alt="Original" />
+            </div>
+          </div>
+          <div>
+            <p style="font-size:0.8rem; color:var(--text-secondary); text-align:center; margin-bottom:8px;">Heatmap 🔥</p>
+            <div class="img-wrap" style="min-height: 200px;">
+              <img id="modalHeatmapImg" src="" alt="Heatmap" />
+            </div>
+          </div>
+        </div>
+        
+        <!-- Explanation -->
+        <div>
+          <h4 style="font-size:0.95rem; margin-bottom:6px; color:var(--text-primary);">AI Explanation</h4>
+          <p class="explanation-text" id="modalExplanation"></p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

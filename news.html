@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Tech News - CareerAi</title>
+  <meta name="description" content="Stay updated with the latest AI and technology news." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <div id="sidebar"></div>
+    <main class="main-content" data-page="news">
+      <div class="page-header">
+        <div>
+          <h1>📰 AI Tech News</h1>
+          <p class="page-header-sub">Latest updates on Artificial Intelligence, Deepfakes, and Tech</p>
+        </div>
+      </div>
+
+      <div class="detect-container">
+        
+        <!-- Search & Categories -->
+        <div class="news-header-actions">
+          <div class="search-box">
+            <input type="text" id="newsSearch" placeholder="Search news (e.g. ChatGPT, OpenAI)..." />
+            <button id="newsSearchBtn">🔍</button>
+          </div>
+          
+          <div class="news-chips" id="newsCategories">
+            <div class="chip active" data-category="artificial intelligence">All</div>
+            <div class="chip" data-category="AI Research">AI Research</div>
+            <div class="chip" data-category="Generative AI">Generative AI</div>
+            <div class="chip" data-category="Deepfake Detection">Deepfake Detection</div>
+            <div class="chip" data-category="Computer Vision">Computer Vision</div>
+            <div class="chip" data-category="Cyber Security">Cyber Security</div>
+          </div>
+        </div>
+
+        <!-- Trending Section -->
+        <div class="trending-section">
+          <div class="trending-title">
+            <span>🔥</span> Trending AI Topics
+          </div>
+          <div class="trending-tags">
+            <span class="trending-tag">GPT Models</span>
+            <span class="trending-tag">Agentic AI</span>
+            <span class="trending-tag">Deepfake Detection</span>
+            <span class="trending-tag">AI in Healthcare</span>
+            <span class="trending-tag">AI Regulation</span>
+          </div>
+        </div>
+
+        <!-- News Grid -->
+        <div id="newsLoading" style="display: none;">
+          <div class="news-loader-video-wrap">
+            <video autoplay loop muted playsinline>
+              <source src="13232-246463976_medium.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div style="margin-top: 18px; font-weight: 600; color: #a0aec0; font-size: 1rem; letter-spacing: 0.5px; animation: pulse 1.5s ease-in-out infinite;">Fetching latest AI news...</div>
+        </div>
+        <div class="news-grid" id="newsGrid">
+          <!-- News cards will be injected here via JS -->
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

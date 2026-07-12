@@ -1,0 +1,29 @@
+# Environment & secrets
+.env
+config.js
+
+# Python
+__pycache__/
+*.pyc
+backend/__pycache__/
+backend/venv/
+.venv/
+
+# Node
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Build artifacts
+.dist/
+
+# Agent/config files (not needed in repo)
+skills-lock.json
+.agents/
+.claude/

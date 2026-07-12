@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Saved News - CareerAi</title>
+  <meta name="description" content="View your saved and liked AI tech news." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <div id="sidebar"></div>
+    <main class="main-content" data-page="saved_news">
+      <div class="page-header">
+        <div>
+          <h1>⭐ Saved News</h1>
+          <p class="page-header-sub">Articles you've bookmarked or liked</p>
+        </div>
+      </div>
+
+      <div class="detect-container">
+        
+        <div class="news-chips" style="margin-bottom: 24px;">
+          <div class="chip active" id="tabSaved">Saved Articles</div>
+          <div class="chip" id="tabLiked">Liked Articles</div>
+        </div>
+
+        <div id="savedNewsLoading" class="news-loading" style="display: none;">Loading your articles...</div>
+        
+        <div class="news-grid" id="savedNewsGrid">
+          <!-- Saved News cards will be injected here via JS -->
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

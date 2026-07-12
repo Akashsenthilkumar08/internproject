@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact - AI Detection App</title>
+  <meta name="description" content="Get in touch with us for support or feedback." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <div id="sidebar"></div>
+    <main class="main-content" data-page="contact">
+      <div class="page-header">
+        <div>
+          <h1>📞 Contact Us</h1>
+          <p class="page-header-sub">We'd love to hear from you</p>
+        </div>
+      </div>
+
+      <div class="contact-grid">
+        <div class="contact-form-card">
+          <h2>Send a Message</h2>
+          <form id="contactForm">
+            <div class="form-group">
+              <label for="contactName">Name</label>
+              <input type="text" id="contactName" placeholder="Your name" required />
+            </div>
+            <div class="form-group">
+              <label for="contactEmail">Email</label>
+              <input type="email" id="contactEmail" placeholder="Your email address" required />
+            </div>
+            <div class="form-group">
+              <label for="contactMessage">Message</label>
+              <textarea id="contactMessage" placeholder="How can we help you?" required></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Send Message</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="contact-info-card">
+          <h2>Get in Touch</h2>
+          
+          <div class="contact-item">
+            <div class="contact-item-icon">📧</div>
+            <div class="contact-item-text">
+              <h4>Email</h4>
+              <p><a href="mailto:akashsenthilkumar018@gmail.com" style="color: inherit; text-decoration: none;">akashsenthilkumar018@gmail.com</a></p>
+            </div>
+          </div>
+          
+          <div class="contact-item">
+            <div class="contact-item-icon">💼</div>
+            <div class="contact-item-text">
+              <h4>LinkedIn</h4>
+              <p><a href="https://www.linkedin.com/in/akash-senthilkumar-79886437b" target="_blank" style="color: inherit; text-decoration: none;">linkedin.com/in/akash-senthilkumar-79886437b</a></p>
+            </div>
+          </div>
+
+          <div class="contact-item">
+            <div class="contact-item-icon">💻</div>
+            <div class="contact-item-text">
+              <h4>GitHub</h4>
+              <p><a href="https://github.com/Akashsenthilkumar08/" target="_blank" style="color: inherit; text-decoration: none;">github.com/Akashsenthilkumar08</a></p>
+            </div>
+          </div>
+
+          <div class="contact-item">
+            <div class="contact-item-icon">📍</div>
+            <div class="contact-item-text">
+              <h4>Location</h4>
+              <p>Tamil Nadu, India</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+
+  <script>
+    // ──── EmailJS Setup ────
+    // Replace these 3 values with your EmailJS credentials:
+    //   1. Go to https://www.emailjs.com/ → Sign up free
+    //   2. Add Gmail as an Email Service → copy the Service ID
+    //   3. Create an Email Template → copy the Template ID
+    //   4. Go to Account → copy your Public Key
+    const EMAILJS_PUBLIC_KEY  = "IgRO2LkiKRuEgj_q_";
+    const EMAILJS_SERVICE_ID  = "service_qsisbpc";
+    const EMAILJS_TEMPLATE_ID = "template_qbzq746";
+
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+
+    const contactForm = document.getElementById("contactForm");
+    if (contactForm) {
+      contactForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const btn = contactForm.querySelector("button[type='submit']");
+        const originalText = btn.textContent;
+        btn.textContent = "Sending...";
+        btn.disabled = true;
+
+        const templateParams = {
+          name:    document.getElementById("contactName").value,
+          email:   document.getElementById("contactEmail").value,
+          message: document.getElementById("contactMessage").value
+        };
+
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+          .then(function() {
+            // Success feedback
+            btn.textContent = "✅ Sent!";
+            btn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+            contactForm.reset();
+            setTimeout(() => {
+              btn.textContent = originalText;
+              btn.style.background = "";
+              btn.disabled = false;
+            }, 3000);
+          })
+          .catch(function(error) {
+            console.error("EmailJS error:", error);
+            btn.textContent = "❌ Failed";
+            btn.style.background = "linear-gradient(135deg, #ef4444, #dc2626)";
+            setTimeout(() => {
+              btn.textContent = originalText;
+              btn.style.background = "";
+              btn.disabled = false;
+            }, 3000);
+          });
+      });
+    }
+  </script>
+</body>
+</html>

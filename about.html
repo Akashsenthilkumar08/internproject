@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About - AI Detection App</title>
+  <meta name="description" content="Information about the project, the AI models used, and our mission." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <div id="sidebar"></div>
+    <main class="main-content" data-page="about">
+      <div class="page-header">
+        <div>
+          <h1>ℹ️ About</h1>
+          <p class="page-header-sub">Learn more about the AI Detection Project</p>
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h2>About AI Detect</h2>
+        <p style="line-height: 1.6; color: var(--text-secondary);">
+          AI Detect is a deep learning–based image authentication platform developed as a major academic project. It enables users to identify whether an uploaded image is AI-generated or real using an advanced CNN model with Grad-CAM visualization. The system also provides user profiles, detection history, analytics, AI news, and secure cloud storage using Firebase.
+        </p>
+        
+        <div style="margin-top: 40px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 20px;">
+          <p style="font-weight: 600; color: var(--accent); margin-bottom: 8px;">Version 1.0</p>
+          <p style="margin-bottom: 4px;">Developed by Akash</p>
+          <p style="font-size: 0.9rem; color: var(--text-muted);">&copy; 2026 Akash. All Rights Reserved.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

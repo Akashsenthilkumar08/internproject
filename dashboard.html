@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - AI Detection App</title>
+  <meta name="description" content="Your AI Detection dashboard — overview statistics, recent activity, and quick access." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="dashboard-page">
+  <!-- Background Video Animation -->
+  <video id="dashboardBgVideo" autoplay muted loop playsinline style="
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    object-fit: cover;
+    z-index: 0;
+    opacity: 0.6;
+    pointer-events: none;
+  ">
+    <source src="269617_medium.mp4" type="video/mp4" />
+  </video>
+  <div style="position: fixed; inset: 0; z-index: 1; background: linear-gradient(180deg, rgba(5,10,25,0.4) 0%, rgba(5,10,25,0.7) 100%); pointer-events: none;"></div>
+
+  <div class="app-layout" style="position: relative; z-index: 10;">
+    <div id="sidebar"></div>
+    <main class="main-content" data-page="dashboard">
+      <div class="page-header">
+        <div>
+          <h1 id="welcomeMsg">Welcome!</h1>
+          <p class="page-header-sub">Here's your detection overview <span id="welcomeUsername" style="color:var(--primary-light); font-weight:600;"></span></p>
+        </div>
+      </div>
+
+      <section class="stats-grid">
+        <div class="stat-card stat-total">
+          <div class="stat-icon">🖼️</div>
+          <div class="stat-info">
+            <span class="stat-label">Total Analyzed</span>
+            <span class="stat-value" id="totalImages">0</span>
+          </div>
+        </div>
+        <div class="stat-card stat-real">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <span class="stat-label">Real Images</span>
+            <span class="stat-value" id="realImages">0</span>
+          </div>
+        </div>
+        <div class="stat-card stat-ai">
+          <div class="stat-icon">🤖</div>
+          <div class="stat-info">
+            <span class="stat-label">AI‑Generated</span>
+            <span class="stat-value" id="aiImages">0</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="quick-detect-section">
+        <a href="detect.html" class="btn-primary btn-detect">🔍 Quick Image Detection</a>
+        <a href="history.html" class="btn-secondary">📜 View History</a>
+      </section>
+
+      <section>
+        <h2 class="section-heading">Recent Activity</h2>
+        <ul id="activityList" class="activity-list">
+          <li class="activity-empty">No activity yet — upload an image to get started!</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
