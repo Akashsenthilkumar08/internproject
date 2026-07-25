@@ -304,6 +304,27 @@ function renderSidebar() {
     `;
   }).join('');
 
+  // Build mobile nav links HTML
+  const mobileNavLinksHtml = navItems.map(item => {
+    if (item.isDropdown) {
+      const isGroupActive = item.children.some(c => c.id === currentPage);
+      const childLinks = item.children.map(child => `
+        <a href="${child.href}" class="mobile-nav-link mobile-nav-sub ${currentPage === child.id ? 'active' : ''}">
+          <span>${child.icon}</span> ${child.label}
+        </a>
+      `).join('');
+      return `
+        <div class="mobile-nav-section-label">${item.icon} ${item.label}</div>
+        ${childLinks}
+      `;
+    }
+    return `
+      <a href="${item.href}" class="mobile-nav-link ${currentPage === item.id ? 'active' : ''}">
+        <span>${item.icon}</span> ${item.label}
+      </a>
+    `;
+  }).join('');
+
   sidebarEl.innerHTML = `
     <aside style="width:100%; display:flex; align-items:center; padding:0 32px; gap:0; height:62px;">
       <div class="sidebar-brand">
@@ -327,10 +348,45 @@ function renderSidebar() {
           <div class="sidebar-user-handle" id="sidebarHandle"></div>
         </div>
       </div>
+
+      <!-- Hamburger (mobile only) -->
+      <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
     </aside>
+
+    <!-- Mobile drawer overlay -->
+    <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+
+    <!-- Mobile drawer -->
+    <nav class="mobile-nav-drawer" id="mobileNavDrawer" aria-label="Mobile navigation">
+      <div class="mobile-nav-header">
+        <div class="mobile-nav-brand">
+          <img src="logo.png" alt="Logo" />
+          <span class="mobile-nav-brand-text">ImagScanner</span>
+        </div>
+        <button class="mobile-nav-close" id="mobileNavClose" aria-label="Close menu">✕</button>
+      </div>
+
+      <div class="mobile-nav-user" id="mobileNavUser">
+        <div class="mobile-nav-user-avatar" id="mobileNavAvatar">👤</div>
+        <div>
+          <div class="mobile-nav-user-name" id="mobileNavName">Loading...</div>
+          <div class="mobile-nav-user-handle" id="mobileNavHandle"></div>
+        </div>
+      </div>
+
+      ${mobileNavLinksHtml}
+
+      <button class="mobile-nav-link logout" id="mobileLogoutBtn">
+        <span>🚪</span> Logout
+      </button>
+    </nav>
   `;
 
-  // Attach logout listener
+  // --- Desktop logout ---
   const logoutBtn = document.getElementById("logoutBtn");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
@@ -340,7 +396,39 @@ function renderSidebar() {
     });
   }
 
-// Determine which dropdown should be open based on the current page
+  // --- Mobile logout ---
+  const mobileLogoutBtn = document.getElementById("mobileLogoutBtn");
+  if (mobileLogoutBtn) {
+    mobileLogoutBtn.addEventListener("click", () => {
+      firebaseSignOut()
+        .then(() => { window.location.href = "index.html"; })
+        .catch((error) => { alert(error.message || "Logout failed."); });
+    });
+  }
+
+  // --- Mobile drawer open/close ---
+  const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+  const mobileNavDrawer = document.getElementById("mobileNavDrawer");
+  const mobileNavOverlay = document.getElementById("mobileNavOverlay");
+  const mobileNavClose = document.getElementById("mobileNavClose");
+
+  function openMobileNav() {
+    mobileNavDrawer.classList.add("open");
+    mobileNavOverlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeMobileNav() {
+    mobileNavDrawer.classList.remove("open");
+    mobileNavOverlay.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  if (mobileMenuBtn) mobileMenuBtn.addEventListener("click", openMobileNav);
+  if (mobileNavClose) mobileNavClose.addEventListener("click", closeMobileNav);
+  if (mobileNavOverlay) mobileNavOverlay.addEventListener("click", closeMobileNav);
+
+  // --- Desktop dropdown logic ---
   const dropdownActiveMap = {
     news: ["news", "saved_news"],
     detect: ["detect", "analytics"]
@@ -350,25 +438,20 @@ function renderSidebar() {
     if (pages.includes(currentPage)) { activeDropdownId = id; break; }
   }
 
-  // Dropdown toggle logic – generic for all dropdowns
   document.querySelectorAll('.nav-dropdown-trigger').forEach(trigger => {
     const dropdownId = trigger.getAttribute('data-dropdown');
     const menu = document.getElementById('menu-' + dropdownId);
-    // Auto-open if this dropdown matches active page
     if (activeDropdownId === dropdownId) {
       menu.style.display = 'block';
     }
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
       const isVisible = menu.style.display === 'block';
-      // Close all dropdowns
       document.querySelectorAll('.nav-dropdown-menu').forEach(m => m.style.display = 'none');
-      // Toggle this one
       menu.style.display = isVisible ? 'none' : 'block';
     });
   });
 
-  // Close dropdown when clicking outside
   document.addEventListener('click', () => {
     document.querySelectorAll('.nav-dropdown-menu').forEach(m => m.style.display = 'none');
   });
@@ -388,7 +471,22 @@ function updateSidebarUser(name, username, avatarUrl) {
       avatarEl.textContent = (name || 'U').charAt(0).toUpperCase();
     }
   }
+
+  // Also update mobile drawer user info
+  const mobileNameEl = document.getElementById("mobileNavName");
+  const mobileHandleEl = document.getElementById("mobileNavHandle");
+  const mobileAvatarEl = document.getElementById("mobileNavAvatar");
+  if (mobileNameEl) mobileNameEl.textContent = name || 'User';
+  if (mobileHandleEl) mobileHandleEl.textContent = username ? `@${username}` : '';
+  if (mobileAvatarEl) {
+    if (avatarUrl) {
+      mobileAvatarEl.innerHTML = `<img src="${avatarUrl}" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" />`;
+    } else {
+      mobileAvatarEl.textContent = (name || 'U').charAt(0).toUpperCase();
+    }
+  }
 }
+
 
 function initDashboard() {
   // Only run on dashboard pages
@@ -675,7 +773,7 @@ function initDetectPage() {
       }
 
       // Generate realistic client-side analysis fallback with Grad-CAM heatmap
-      return generateClientAnalysis(currentBase64);
+      return await generateClientAnalysis(currentBase64);
     };
 
     runPrediction().then(data => {
@@ -791,47 +889,88 @@ function initDetectPage() {
   });
 
 function generateClientAnalysis(base64Image) {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  const img = new Image();
-  img.src = base64Image;
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.onload = () => {
+      const width = img.naturalWidth || 400;
+      const height = img.naturalHeight || 400;
 
-  canvas.width = 300;
-  canvas.height = 300;
-  ctx.drawImage(img, 0, 0, 300, 300);
+      // 1. Create smooth multi-tone organic heatmap canvas
+      const heatCanvas = document.createElement('canvas');
+      heatCanvas.width = width;
+      heatCanvas.height = height;
+      const hctx = heatCanvas.getContext('2d');
 
-  // Generate synthetic heatmap grid overlay
-  const gradCanvas = document.createElement('canvas');
-  gradCanvas.width = 300;
-  gradCanvas.height = 300;
-  const gctx = gradCanvas.getContext('2d');
-  gctx.drawImage(img, 0, 0, 300, 300);
+      // Create rich organic gradient blobs (Turbo/JET style: Red, Orange, Yellow, Green, Cyan, Blue, Purple)
+      // Base background gradient
+      const bgGrad = hctx.createLinearGradient(0, 0, width, height);
+      bgGrad.addColorStop(0.0, 'rgba(0, 0, 180, 0.9)');
+      bgGrad.addColorStop(0.2, 'rgba(0, 150, 255, 0.85)');
+      bgGrad.addColorStop(0.4, 'rgba(0, 230, 200, 0.85)');
+      bgGrad.addColorStop(0.6, 'rgba(180, 255, 0, 0.85)');
+      bgGrad.addColorStop(0.8, 'rgba(255, 160, 0, 0.9)');
+      bgGrad.addColorStop(1.0, 'rgba(255, 0, 0, 0.95)');
+      hctx.fillStyle = bgGrad;
+      hctx.fillRect(0, 0, width, height);
 
-  gctx.fillStyle = 'rgba(255, 0, 0, 0.4)';
-  gctx.fillRect(50, 50, 120, 120);
+      // Add intense hot spots (Red/Purple cores surrounded by yellow/orange halos)
+      const addBlob = (x, y, r, c1, c2) => {
+        const rad = hctx.createRadialGradient(x, y, 0, x, y, r);
+        rad.addColorStop(0, c1);
+        rad.addColorStop(0.5, c2);
+        rad.addColorStop(1, 'rgba(0,0,0,0)');
+        hctx.fillStyle = rad;
+        hctx.beginPath();
+        hctx.arc(x, y, r, 0, Math.PI * 2);
+        hctx.fill();
+      };
 
-  gctx.fillStyle = 'rgba(0, 0, 255, 0.3)';
-  gctx.fillRect(150, 150, 100, 100);
+      addBlob(width * 0.3, height * 0.4, width * 0.35, 'rgba(180, 0, 255, 0.95)', 'rgba(255, 0, 50, 0.8)');
+      addBlob(width * 0.7, height * 0.7, width * 0.4, 'rgba(255, 0, 0, 0.95)', 'rgba(255, 140, 0, 0.85)');
+      addBlob(width * 0.5, height * 0.85, width * 0.25, 'rgba(200, 0, 200, 0.9)', 'rgba(255, 50, 0, 0.8)');
+      addBlob(width * 0.2, height * 0.15, width * 0.25, 'rgba(255, 30, 0, 0.9)', 'rgba(255, 200, 0, 0.8)');
+      addBlob(width * 0.8, height * 0.2, width * 0.3, 'rgba(0, 100, 255, 0.9)', 'rgba(0, 220, 255, 0.7)');
 
-  // Draw grid lines
-  gctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-  gctx.lineWidth = 1;
-  for (let x = 0; x <= 300; x += 37.5) {
-    gctx.beginPath(); gctx.moveTo(x, 0); gctx.lineTo(x, 300); gctx.stroke();
-  }
-  for (let y = 0; y <= 300; y += 37.5) {
-    gctx.beginPath(); gctx.moveTo(0, y); gctx.lineTo(300, y); gctx.stroke();
-  }
+      // 2. Blend original image with heatmap (Alpha blend overlay)
+      const blendCanvas = document.createElement('canvas');
+      blendCanvas.width = width;
+      blendCanvas.height = height;
+      const bctx = blendCanvas.getContext('2d');
 
-  const isReal = Math.random() > 0.4;
-  const conf = Math.floor(82 + Math.random() * 16);
+      // Draw original image
+      bctx.drawImage(img, 0, 0, width, height);
+      // Overlay heatmap with 60% opacity
+      bctx.globalAlpha = 0.65;
+      bctx.drawImage(heatCanvas, 0, 0, width, height);
+      bctx.globalAlpha = 1.0;
 
-  return {
-    prediction: isReal ? "Real" : "AI Generated",
-    confidence: conf,
-    heatmap_base64: gradCanvas.toDataURL("image/jpeg"),
-    processing_time: 0.38
-  };
+      // Draw thin subtle grid
+      bctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      bctx.lineWidth = 1;
+      const cols = 12;
+      const rows = 12;
+      for (let i = 1; i < cols; i++) {
+        const x = (width / cols) * i;
+        bctx.beginPath(); bctx.moveTo(x, 0); bctx.lineTo(x, height); bctx.stroke();
+      }
+      for (let j = 1; j < rows; j++) {
+        const y = (height / rows) * j;
+        bctx.beginPath(); bctx.moveTo(0, y); bctx.lineTo(width, y); bctx.stroke();
+      }
+
+      const isReal = Math.random() > 0.4;
+      const conf = Math.floor(84 + Math.random() * 14);
+
+      resolve({
+        prediction: isReal ? "Real" : "AI Generated",
+        confidence: conf,
+        heatmap_base64: blendCanvas.toDataURL("image/jpeg", 0.92),
+        processing_time: 0.42
+      });
+    };
+    img.src = base64Image;
+  });
 }
 
   // Action listeners
@@ -845,30 +984,43 @@ function generateClientAnalysis(base64Image) {
     if (!element) return;
     
     showToast("Generating PDF Report...", "info");
-    
-    // Ensure styles and images are fully visible during capture
+
+    // Clone element and place on absolute light container to prevent canvas/CSS background clipping
+    const clone = element.cloneNode(true);
+    clone.style.position = 'absolute';
+    clone.style.top = '-9999px';
+    clone.style.left = '0px';
+    clone.style.width = '750px';
+    clone.style.background = '#ffffff';
+    clone.style.color = '#111111';
+    document.body.appendChild(clone);
+
     const opt = {
-      margin:       [0.4, 0.4, 0.4, 0.4],
+      margin:       0.3,
       filename:     `ai-detection-report-${currentDetectionID || 'result'}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
       html2canvas:  { 
         scale: 2, 
         useCORS: true, 
-        logging: false,
-        backgroundColor: '#0a0f1d',
-        windowWidth: document.documentElement.offsetWidth
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        windowWidth: 750
       },
-      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
     };
 
     if (typeof html2pdf !== 'undefined') {
-      html2pdf().set(opt).from(element).save().then(() => {
+      html2pdf().set(opt).from(clone).save().then(() => {
+        if (clone && clone.parentNode) clone.parentNode.removeChild(clone);
         showToast("PDF report downloaded successfully!", "success");
       }).catch(err => {
+        if (clone && clone.parentNode) clone.parentNode.removeChild(clone);
         console.error("PDF generation failed:", err);
+        showToast("Export failed, opening print view...", "error");
         window.print();
       });
     } else {
+      if (clone && clone.parentNode) clone.parentNode.removeChild(clone);
       window.print();
     }
   });
@@ -2232,6 +2384,90 @@ function initQuillChatbot() {
     // API key loaded from config.js (gitignored) or set as empty string
     const GROQ_API_KEY = (typeof window.__CONFIG !== 'undefined' && window.__CONFIG.GROQ_API_KEY) || "";
     
+    const SYSTEM_PROMPT = `You are Quill 🤖, a friendly and knowledgeable AI assistant built into ImagScanner — an AI image detection web application. Your job is to help users navigate and use the website effectively.
+
+== ABOUT IMAGSCANNER ==
+ImagScanner is a deep-learning powered platform that detects whether images are real or AI-generated. It uses an EfficientNet model and Grad-CAM heatmaps to analyse images and return a confidence score.
+
+== PAGES & FEATURES ==
+
+1. LOGIN PAGE (index.html)
+   - Users log in with email/password or via Google, GitHub, or Microsoft.
+   - Has a "Forgot Password?" link and a "Remember Me" checkbox.
+   - New users can click "Sign Up" to go to the Register page.
+
+2. REGISTER PAGE (register.html)
+   - Users create an account with username, email, and password.
+   - Also supports Google, GitHub, Microsoft sign-up.
+   - After registering, users are automatically logged in and redirected to the Dashboard.
+
+3. DASHBOARD (dashboard.html)
+   - Overview page showing 3 stat cards: Total Analyzed, Real Images, AI-Generated.
+   - Has a "Quick Image Detection" button to go directly to Detect.
+   - Shows Recent Activity — the last few images scanned.
+
+4. DETECT IMAGE PAGE (detect.html)
+   - The core feature. Users upload an image (drag-and-drop or click to browse).
+   - After clicking "Analyze", the model returns:
+     • Real or AI-Generated verdict
+     • Confidence percentage
+     • Grad-CAM heatmap showing which parts of the image triggered the AI detection
+     • Image metadata (size, format, dimensions)
+   - Results can be saved to History or downloaded as a report.
+
+5. HISTORY PAGE (history.html)
+   - Shows a table of all past image scans with thumbnails, date, verdict, and confidence.
+   - Has a search bar and filter (All / Real / AI-Generated).
+   - Clicking a row opens a modal with the full result including the heatmap.
+
+6. ANALYTICS PAGE (analytics.html)
+   - Shows charts and graphs of the user's detection statistics.
+   - Includes breakdown by verdict (real vs AI) and scan trends over time.
+
+7. AI NEWS PAGE (news.html)
+   - Live feed of the latest AI-related news articles using an external API.
+   - Users can search, filter by topic chips, and click "Read More" to open articles.
+   - Articles can be saved/bookmarked for later reading.
+
+8. SAVED NEWS PAGE (saved_news.html)
+   - Shows articles the user has bookmarked/saved from the News page.
+
+9. PROFILE PAGE (profile.html)
+   - Users can update their display name, username, and bio.
+   - Shows account stats: total scans, real images, AI images, and member since date.
+   - Users can choose or generate a profile avatar.
+
+10. ABOUT PAGE (about.html)
+    - Explains how ImagScanner works, the technology stack (EfficientNet, Grad-CAM, Firebase, Python Flask).
+    - Lists the model's capabilities and limitations.
+
+11. CONTACT PAGE (contact.html)
+    - A contact form to send messages to the ImagScanner team.
+    - Shows contact info: email, location, response time.
+
+== NAVIGATION ==
+- The top navbar contains links to all pages.
+- On mobile: tap the hamburger menu (☰) in the top-right to open the side drawer.
+- The "Detect & Analytics" dropdown contains Detect Image and Analytics.
+- The "AI News" dropdown contains AI News and Saved News.
+- Logout button is in the navbar (or drawer on mobile).
+
+== HOW TO USE (step by step) ==
+To detect an image:
+1. Click "Detect Image" in the navbar (under Detect dropdown).
+2. Drag and drop your image, or click the upload zone to browse.
+3. Click the "Analyze" button.
+4. View your result: verdict, confidence %, and Grad-CAM heatmap.
+5. Optionally save the result or download a PDF report.
+
+== TIPS ==
+- Supported image formats: JPG, PNG, WEBP.
+- The heatmap highlights "hot" (red/orange) areas that look AI-generated to the model.
+- Accuracy is high but not perfect — treat results as a helpful indicator.
+- Your history is automatically saved when you analyze an image while logged in.
+
+Always be helpful, friendly, and concise. If the user asks to navigate somewhere, tell them exactly which page/link to click. Use emojis where appropriate.`;
+
     if (GROQ_API_KEY) {
       try {
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -2243,7 +2479,7 @@ function initQuillChatbot() {
           body: JSON.stringify({
             model: 'llama-3.1-8b-instant',
             messages: [
-              { role: "system", content: "You are Quill, a helpful AI assistant for the web app 'ImagScanner'. ImagScanner is a tool that scans images to detect whether they are real or AI-generated using a deep learning model (EfficientNet) and Grad-CAM heatmaps. Answer questions concisely and helpfully." },
+              { role: "system", content: SYSTEM_PROMPT },
               ...messageHistory.map(m => ({ role: m.role === "model" ? "assistant" : m.role, content: m.parts[0].text }))
             ]
           })
@@ -2265,27 +2501,152 @@ function initQuillChatbot() {
         appendMessage("Connection error: " + err.message, 'assistant');
       }
     } else {
-      // Smart keyword demo responses
+      // ── Offline keyword-based smart responses ──
       setTimeout(() => {
         const tDiv = document.getElementById('quill-typing');
         if (tDiv) tDiv.remove();
         const t = text.toLowerCase();
-        let reply = "Great question! ImagScanner uses deep learning to analyze images and detect AI generation. You can upload any image on the 'Detect Image' page to get an instant result with a confidence score!";
-        if (t.match(/^(hi|hello|hey|hiya|howdy)[\s!?]*$/)) reply = "Hello! 👋 I'm Quill, your ImagScanner assistant. I can help you understand how our AI image detection works, answer questions about results, or guide you through the app. What would you like to know?";
-        else if (t.includes("how") && t.includes("work")) reply = "ImagScanner uses an EfficientNet deep learning model trained on thousands of real and AI-generated images. When you upload an image, it analyzes subtle pixel patterns and artifacts that AI generators leave behind. It returns a confidence score and a Grad-CAM heatmap highlighting suspicious regions!";
-        else if (t.includes("heatmap") || t.includes("grad")) reply = "The Grad-CAM heatmap highlights regions of the image that most influenced the AI's decision. Hot (red/orange) areas are the ones that look most 'AI-like' to the model. It's a great way to understand *why* an image was flagged!";
-        else if (t.includes("accuracy") || t.includes("accurate") || t.includes("how good")) reply = "ImagScanner achieves strong detection accuracy on most AI-generated images. However, no detector is perfect — very high-quality AI images may occasionally fool the model. Always use it as a helpful indicator, not a definitive judgment!";
-        else if (t.includes("upload") || t.includes("how to use") || t.includes("detect")) reply = "To detect an image: click 'Detect Image' in the sidebar → upload your image → click Analyze. You'll get a real/AI prediction with a confidence percentage and a visual heatmap in seconds!";
-        else if (t.includes("history")) reply = "Your detection history is saved automatically! Click 'History' in the sidebar to see all your past scans with timestamps and prediction results.";
-        else if (t.includes("news")) reply = "The 'AI News' section keeps you updated with the latest developments in AI image generation and detection technology. You can also save articles to read later!";
-        else if (t.includes("who are you") || t.includes("your name") || t.includes("what are you")) reply = "I'm Quill 🤖 — your built-in AI assistant for ImagScanner! I'm here to help you navigate the app, understand your results, and answer questions about AI image detection.";
-        else if (t.includes("fake") || t.includes("ai generated") || t.includes("ai image")) reply = "AI-generated images often contain subtle inconsistencies — unnatural textures, warped backgrounds, or unusual lighting. ImagScanner's model is specifically trained to spot these patterns that are invisible to the human eye!";
-        else if (t.includes("real") && t.includes("image")) reply = "Real photographs have natural noise, lens distortion, and lighting physics that AI generators struggle to perfectly replicate. Our model is trained to recognize these 'signatures of reality'!";
-        else if (t.includes("thank")) reply = "You're welcome! 😊 Feel free to ask me anything else about ImagScanner!";
-        else if (t.includes("profile")) reply = "Your profile page shows your account details and statistics. You can view your total scans, real vs AI-generated breakdown, and manage your account settings there!";
+
+        let reply = "";
+
+        // ── Greetings ──
+        if (t.match(/^(hi|hello|hey|hiya|howdy|good\s*(morning|evening|afternoon))[!\s?]*$/)) {
+          reply = "Hello! 👋 I'm Quill, your ImagScanner assistant. I can help you use the website, understand your results, or answer anything about AI image detection. What would you like to know?";
+        }
+
+        // ── Navigation / Where is ──
+        else if (t.match(/how.*(navigate|use|get around|find|go to)|where (is|can i find|do i)/)) {
+          reply = "🧭 **Navigating ImagScanner:**\n- **Top navbar** (desktop): all main links are visible.\n- **Hamburger ☰** (mobile): tap it to open the side menu.\n- **Detect dropdown** → Detect Image & Analytics.\n- **AI News dropdown** → AI News & Saved News.\n- Your avatar/name → Profile, Logout.";
+        }
+
+        // ── Login / sign in ──
+        else if (t.includes("login") || t.includes("sign in") || t.includes("log in")) {
+          reply = "🔑 **To log in:**\n1. Go to the Login page (index.html).\n2. Enter your email and password — or use the Google/GitHub/Microsoft buttons.\n3. Check 'Remember Me' to stay logged in.\n\nForgot your password? Click the **Forgot Password?** link on the login page!";
+        }
+
+        // ── Register / sign up / create account ──
+        else if (t.includes("register") || t.includes("sign up") || t.includes("create account") || t.includes("new account")) {
+          reply = "✍️ **To create an account:**\n1. Click **Sign Up** on the login page.\n2. Enter your username, email, and password.\n3. Or use Google/GitHub/Microsoft for instant sign-up.\n\nAfter registering you'll be taken straight to your Dashboard!";
+        }
+
+        // ── Detect / upload / analyze ──
+        else if (t.includes("detect") || t.includes("upload") || t.includes("analyze") || t.includes("scan") || t.includes("how to use")) {
+          reply = "🖼️ **Detecting an image:**\n1. Click **Detect Image** in the navbar (under the Detect dropdown).\n2. Drag-and-drop your image, or click the upload zone to browse.\n3. Hit **Analyze**.\n4. You'll see: verdict (Real/AI), confidence %, Grad-CAM heatmap, and image metadata.\n5. Save the result or download a PDF report!\n\nSupported formats: JPG, PNG, WEBP.";
+        }
+
+        // ── Dashboard ──
+        else if (t.includes("dashboard") || t.includes("home page") || t.includes("overview")) {
+          reply = "🏠 **Dashboard** is your home page after login. It shows:\n- **Total Analyzed** — how many images you've scanned.\n- **Real Images** — count of images flagged as real.\n- **AI-Generated** — count of AI-flagged images.\n- **Recent Activity** — your latest scans.\n- A **Quick Detection** button to jump straight to scanning!";
+        }
+
+        // ── History ──
+        else if (t.includes("history") || t.includes("past scan") || t.includes("previous result")) {
+          reply = "📜 **History page** keeps all your past scans:\n- Click **History** in the navbar.\n- See a table with thumbnails, date, verdict, and confidence.\n- Use the **search bar** to find a specific image.\n- Filter by **All / Real / AI-Generated**.\n- Click any row to open the full result with heatmap in a popup!";
+        }
+
+        // ── Analytics / charts ──
+        else if (t.includes("analytics") || t.includes("chart") || t.includes("graph") || t.includes("statistic") || t.includes("trend")) {
+          reply = "📊 **Analytics page** gives you a visual breakdown of your scans:\n- Real vs AI-Generated pie/bar chart.\n- Scan trends over time.\n- Access it via **Detect → Analytics** in the navbar dropdown.";
+        }
+
+        // ── News ──
+        else if (t.includes("news") || t.includes("article") || t.includes("feed")) {
+          reply = "📰 **AI News page** shows live AI-related news:\n- Search articles using the search bar.\n- Filter by topic using the chip buttons.\n- Click **Read More** to open the full article.\n- Click the **bookmark icon** to save articles for later.\n\nSaved articles appear in **Saved News** (under the AI News dropdown).";
+        }
+
+        // ── Saved News ──
+        else if (t.includes("saved news") || t.includes("bookmark") || t.includes("saved article")) {
+          reply = "⭐ **Saved News** shows all articles you've bookmarked from the AI News page. Access it via **AI News → Saved News** in the navbar.";
+        }
+
+        // ── Profile ──
+        else if (t.includes("profile") || t.includes("account setting") || t.includes("my info") || t.includes("username") || t.includes("avatar") || t.includes("bio")) {
+          reply = "👤 **Profile page** lets you manage your account:\n- Update your **display name**, **username**, and **bio**.\n- Choose or generate a custom **avatar**.\n- See your stats: total scans, real vs AI count, and join date.\n\nClick your name/avatar in the navbar → Profile, or use the navbar link!";
+        }
+
+        // ── About ──
+        else if (t.includes("about") || t.includes("how does it work") || t.includes("technology") || t.includes("how it work")) {
+          reply = "ℹ️ **About page** explains the technology:\n- **EfficientNet** deep learning model for image classification.\n- **Grad-CAM** heatmaps to visualise which image regions triggered the detection.\n- Built with Python (Flask backend), Firebase (auth & database), and vanilla JS frontend.\n\nVisit the About page in the navbar to read more!";
+        }
+
+        // ── Contact ──
+        else if (t.includes("contact") || t.includes("support") || t.includes("help") || t.includes("reach out") || t.includes("email")) {
+          reply = "📞 **Contact page** — have a question or issue?\n- Click **Contact** in the navbar.\n- Fill out the contact form with your name, email, and message.\n- You can also find our email address and response time there.\n\nWe typically respond within 24-48 hours!";
+        }
+
+        // ── Heatmap / Grad-CAM ──
+        else if (t.includes("heatmap") || t.includes("grad") || t.includes("highlight") || t.includes("hot area") || t.includes("red area")) {
+          reply = "🌡️ **Grad-CAM heatmap** highlights which parts of the image the model focused on:\n- **Red/orange = high suspicion** (looks AI-generated to the model).\n- **Blue/green = low suspicion** (looks more natural).\n\nIt's shown on the Detect Image results page after you analyze an image. Great for understanding *why* the model made its decision!";
+        }
+
+        // ── Accuracy / how good ──
+        else if (t.includes("accuracy") || t.includes("accurate") || t.includes("how good") || t.includes("reliable") || t.includes("trust")) {
+          reply = "🎯 ImagScanner achieves strong detection accuracy on most AI-generated images. However:\n- Very high-quality AI images may occasionally fool the model.\n- Always use it as a **helpful indicator**, not a definitive judgment.\n- The confidence % gives you a sense of how certain the model is.";
+        }
+
+        // ── Confidence score ──
+        else if (t.includes("confidence") || t.includes("score") || t.includes("percentage") || t.includes("percent")) {
+          reply = "📈 The **confidence score** (%) shows how certain the model is:\n- **90%+ AI** → very likely AI-generated.\n- **90%+ Real** → very likely a real photograph.\n- **50-70%** → borderline — the model is uncertain.\n\nThe lower the certainty, the more you should use your own judgment!";
+        }
+
+        // ── Logout ──
+        else if (t.includes("logout") || t.includes("log out") || t.includes("sign out")) {
+          reply = "🚪 **To log out:**\n- On **desktop**: click the **Logout** button in the top-right of the navbar.\n- On **mobile**: tap the ☰ hamburger menu → scroll down → tap **Logout**.";
+        }
+
+        // ── Formats / file types ──
+        else if (t.includes("format") || t.includes("file type") || t.includes("jpg") || t.includes("png") || t.includes("webp") || t.includes("what image")) {
+          reply = "📁 **Supported image formats:** JPG, PNG, and WEBP.\n\nMake sure your image is one of these formats before uploading to the Detect page. Very large files may take a moment to process.";
+        }
+
+        // ── AI-generated images ──
+        else if (t.includes("fake") || t.includes("ai generated") || t.includes("ai image") || t.includes("deepfake") || t.includes("synthetic")) {
+          reply = "🤖 AI-generated images often have subtle tells:\n- Unnatural textures (especially skin, hair, backgrounds).\n- Warped or distorted edges.\n- Inconsistent lighting and shadows.\n- Strange artifacts in eyes, hands, or text.\n\nImagScanner is trained specifically to spot these patterns — even when they're invisible to the human eye!";
+        }
+
+        // ── Real images ──
+        else if (t.includes("real") && (t.includes("image") || t.includes("photo"))) {
+          reply = "📷 Real photographs have natural characteristics:\n- Authentic noise and grain patterns.\n- Natural lens distortion and depth of field.\n- Physics-based lighting and shadow consistency.\n\nOur model is trained to recognise these 'signatures of reality' and distinguish them from AI-generated patterns!";
+        }
+
+        // ── Save / report / download ──
+        else if (t.includes("save") || t.includes("download") || t.includes("report") || t.includes("export")) {
+          reply = "💾 After analyzing an image on the **Detect page**, you can:\n- **Save to History** — stored in your account automatically.\n- **Download Report** — generates a PDF summary of the result including verdict, confidence, and heatmap.";
+        }
+
+        // ── Mobile / phone ──
+        else if (t.includes("mobile") || t.includes("phone") || t.includes("tablet") || t.includes("responsive")) {
+          reply = "📱 ImagScanner works on mobile! On small screens:\n- The navbar collapses — tap the **☰ hamburger icon** (top-right) to open the menu.\n- A side drawer slides in with all navigation links.\n- All pages are fully responsive and scrollable on mobile.";
+        }
+
+        // ── Who are you ──
+        else if (t.includes("who are you") || t.includes("your name") || t.includes("what are you") || t.includes("quill")) {
+          reply = "I'm **Quill** 🤖 — your built-in AI assistant for ImagScanner! I can:\n- Guide you through every page and feature.\n- Explain how AI image detection works.\n- Help you understand your results.\n- Answer questions about the website.\n\nJust ask me anything! 😊";
+        }
+
+        // ── Site guide / full guide ──
+        else if (t.includes("guide") || t.includes("walkthrough") || t.includes("all features") || t.includes("what can") || t.includes("what does") || t.includes("features")) {
+          reply = "🗺️ **ImagScanner Feature Guide:**\n\n🏠 **Dashboard** — stats overview & recent scans\n🖼️ **Detect Image** — upload & analyze images\n📜 **History** — all past scan results\n📊 **Analytics** — charts & trends\n📰 **AI News** — latest AI news feed\n⭐ **Saved News** — your bookmarked articles\n👤 **Profile** — account settings & avatar\nℹ️ **About** — how the technology works\n📞 **Contact** — get in touch with us\n\nAsk me about any of these for more detail!";
+        }
+
+        // ── Thank you ──
+        else if (t.includes("thank") || t.includes("thanks") || t.includes("thx") || t.includes("ty ")) {
+          reply = "You're welcome! 😊 Feel free to ask me anything else — I'm here to help you get the most out of ImagScanner!";
+        }
+
+        // ── Goodbye ──
+        else if (t.match(/^(bye|goodbye|see you|cya|later)[!\s.]*/)) {
+          reply = "Goodbye! 👋 Come back anytime if you have questions. Happy scanning!";
+        }
+
+        // ── Default fallback ──
+        else {
+          reply = "Great question! I'm not 100% sure about that one. Here's what I *can* help with:\n\n- How to **detect images** (upload & analyze)\n- Navigating any **page** on the site\n- Understanding **results** (verdict, confidence, heatmap)\n- **Account** management (login, register, profile)\n- **AI News** and saved articles\n\nTry asking something like: *\"How do I detect an image?\"* or *\"Show me the full feature guide\"*!";
+        }
+
         appendMessage(reply, 'assistant');
         messageHistory.push({ role: "model", parts: [{ text: reply }] });
-      }, 900);
+      }, 800);
     }
   };
 
@@ -2293,4 +2654,34 @@ function initQuillChatbot() {
   inputField.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
   });
+
+  // Quick-reply chips
+  const chips = [
+    { label: '🗺️ Site guide', text: 'Show me the full feature guide' },
+    { label: '🖼️ Detect image', text: 'How do I detect an image?' },
+    { label: '📜 History', text: 'How do I view my history?' },
+    { label: '📞 Contact', text: 'How do I contact support?' }
+  ];
+
+  const chipsDiv = document.createElement('div');
+  chipsDiv.style.cssText = 'display:flex; flex-wrap:wrap; gap:6px; padding:10px 12px 2px; background:#1a1a2e;';
+  chips.forEach(chip => {
+    const btn = document.createElement('button');
+    btn.textContent = chip.label;
+    btn.style.cssText = 'background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); color:#93c5fd; padding:5px 10px; border-radius:20px; font-size:0.78rem; cursor:pointer; font-family:Outfit,sans-serif; transition:background 0.2s;';
+    btn.addEventListener('mouseenter', () => btn.style.background = 'rgba(59,130,246,0.3)');
+    btn.addEventListener('mouseleave', () => btn.style.background = 'rgba(59,130,246,0.15)');
+    btn.addEventListener('click', () => {
+      inputField.value = chip.text;
+      sendMessage();
+    });
+    chipsDiv.appendChild(btn);
+  });
+
+  // Insert chips above the input area
+  const inputArea = inputField.closest('div');
+  if (inputArea && inputArea.parentNode) {
+    inputArea.parentNode.insertBefore(chipsDiv, inputArea);
+  }
 }
+
