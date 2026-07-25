@@ -983,44 +983,44 @@ function generateClientAnalysis(base64Image) {
     const element = document.getElementById("reportPreview");
     if (!element) return;
     
-    showToast("Generating PDF Report...", "info");
+    showToast("Opening PDF Print View...", "info");
 
-    // Clone element and place on absolute light container to prevent canvas/CSS background clipping
-    const clone = element.cloneNode(true);
-    clone.style.position = 'absolute';
-    clone.style.top = '-9999px';
-    clone.style.left = '0px';
-    clone.style.width = '750px';
-    clone.style.background = '#ffffff';
-    clone.style.color = '#111111';
-    document.body.appendChild(clone);
-
-    const opt = {
-      margin:       0.3,
-      filename:     `ai-detection-report-${currentDetectionID || 'result'}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { 
-        scale: 2, 
-        useCORS: true, 
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        windowWidth: 750
-      },
-      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-    };
-
-    if (typeof html2pdf !== 'undefined') {
-      html2pdf().set(opt).from(clone).save().then(() => {
-        if (clone && clone.parentNode) clone.parentNode.removeChild(clone);
-        showToast("PDF report downloaded successfully!", "success");
-      }).catch(err => {
-        if (clone && clone.parentNode) clone.parentNode.removeChild(clone);
-        console.error("PDF generation failed:", err);
-        showToast("Export failed, opening print view...", "error");
-        window.print();
-      });
+    const reportHtml = element.innerHTML;
+    const printWindow = window.open('', '_blank', 'width=850,height=1100');
+    
+    if (printWindow) {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>AI Detection Report - ${currentDetectionID || 'Result'}</title>
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet" />
+          <style>
+            @page { size: A4; margin: 15mm; }
+            body { font-family: 'Inter', sans-serif; background: #ffffff; color: #111111; margin: 0; padding: 20px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            * { box-sizing: border-box; }
+            img { max-width: 100%; height: auto; }
+            .report-card { width: 100%; max-width: 750px; margin: 0 auto; background: #ffffff; }
+          </style>
+        </head>
+        <body>
+          <div class="report-card">
+            ${reportHtml}
+          </div>
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+                window.close();
+              }, 500);
+            };
+          </script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
     } else {
-      if (clone && clone.parentNode) clone.parentNode.removeChild(clone);
+      // Fallback for popup blocker
       window.print();
     }
   });
