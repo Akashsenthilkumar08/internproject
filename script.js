@@ -657,9 +657,9 @@ function initDetectPage() {
     const formData = new FormData();
     formData.append("image", currentFile);
 
-    const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    const BACKEND_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
       ? 'http://127.0.0.1:5000' 
-      : 'https://akaszz-careerai-backend.hf.space';
+      : '';
 
     fetch(`${BACKEND_URL}/predict`, {
       method: "POST",
@@ -1584,7 +1584,7 @@ function fetchAndRenderNews(query = "artificial intelligence") {
   Promise.all([
     user ? db.collection("saved_news").where("userId", "==", user.uid).get().catch(() => ({docs:[]})) : Promise.resolve({docs:[]}),
     user ? db.collection("liked_news").where("userId", "==", user.uid).get().catch(() => ({docs:[]})) : Promise.resolve({docs:[]}),
-    fetch(`${(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:5000' : 'https://akaszz-careerai-backend.hf.space')}/api/news?q=${encodeURIComponent(query)}`).then(res => res.json()).catch(err => { console.error(err); return null; }),
+    fetch(`${(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:5000' : '')}/api/news?q=${encodeURIComponent(query)}`).then(res => res.json()).catch(err => { console.error(err); return null; }),
     minDelay
   ]).then(([savedSnap, likedSnap, data]) => {
     const savedUrls = new Set(savedSnap.docs.map(d => d.data().url));

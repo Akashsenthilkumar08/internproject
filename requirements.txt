@@ -5,3 +5,4 @@ numpy==1.26.2
 Pillow==10.1.0
 opencv-python-headless==4.8.1.78
 gunicorn==21.2.0
+serverless-wsgi==3.0.2
