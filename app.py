@@ -1,5 +1,10 @@
 import os
+import sys
+
+# Ensure backend directory is in python path
+sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
+
+from backend.app import app
 
 if __name__ == "__main__":
-    # Start the Flask backend using gunicorn on port 7860
-    os.system("cd backend && gunicorn app:app -b 0.0.0.0:7860 --timeout 120")
+    app.run(host="0.0.0.0", port=7860)
