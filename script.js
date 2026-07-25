@@ -841,27 +841,36 @@ function generateClientAnalysis(base64Image) {
 
   // Download PDF Report
   document.getElementById("downloadPdfBtn").addEventListener("click", () => {
-    const originalElement = document.getElementById("reportPreview");
+    const element = document.getElementById("reportPreview");
+    if (!element) return;
     
-    // Clone the element and place it off-screen to avoid overflow/hidden rendering issues with html2canvas
-    const element = originalElement.cloneNode(true);
-    element.style.position = "absolute";
-    element.style.left = "-9999px";
-    element.style.top = "0";
-    element.style.width = "700px";
-    document.body.appendChild(element);
-
+    showToast("Generating PDF Report...", "info");
+    
+    // Ensure styles and images are fully visible during capture
     const opt = {
-      margin:       0.3,
+      margin:       [0.4, 0.4, 0.4, 0.4],
       filename:     `ai-detection-report-${currentDetectionID || 'result'}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true },
+      html2canvas:  { 
+        scale: 2, 
+        useCORS: true, 
+        logging: false,
+        backgroundColor: '#0a0f1d',
+        windowWidth: document.documentElement.offsetWidth
+      },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
-    showToast("Generating PDF Report...", "info");
-    html2pdf().from(element).set(opt).save().then(() => {
-      document.body.removeChild(element);
-    });
+
+    if (typeof html2pdf !== 'undefined') {
+      html2pdf().set(opt).from(element).save().then(() => {
+        showToast("PDF report downloaded successfully!", "success");
+      }).catch(err => {
+        console.error("PDF generation failed:", err);
+        window.print();
+      });
+    } else {
+      window.print();
+    }
   });
 
   // Download Original Image
@@ -1659,24 +1668,72 @@ function fetchAndRenderNews(query = "artificial intelligence") {
       console.warn("Direct NewsAPI fetch failed, returning fallback news", e);
     }
 
-    // Fallback curated news items if both network requests fail
+    // Fallback curated news items
     return {
       articles: [
         {
-          title: "AI Breakthroughs Transforming Career and Job Markets in 2026",
-          description: "Generative AI and automated intelligence tools are reshaping industry workforce trends.",
-          url: "https://techcrunch.com",
+          title: "AI Breakthroughs Transforming Career & Job Markets in 2026",
+          description: "Generative AI and automated intelligence tools are reshaping global workforce trends and hiring requirements.",
+          url: "https://techcrunch.com/category/artificial-intelligence/",
           urlToImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800",
           publishedAt: new Date().toISOString(),
-          source: { name: "Tech News Daily" }
+          source: { name: "TechCrunch" }
         },
         {
-          title: "Top Skills Required for Machine Learning & Software Engineering Roles",
-          description: "Discover key technologies, frameworks, and portfolio building strategies.",
-          url: "https://wired.com",
+          title: "Next-Gen Deepfake Detection: How AI Models Catch Synthetic Media",
+          description: "Computer vision and neural networks advance detection techniques against ultra-realistic AI generated imagery.",
+          url: "https://wired.com/tag/artificial-intelligence/",
           urlToImage: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800",
           publishedAt: new Date().toISOString(),
-          source: { name: "AI Insider" }
+          source: { name: "Wired AI" }
+        },
+        {
+          title: "Autonomous Agentic AI: The Shift from Chatbots to Action-Oriented Systems",
+          description: "Multi-agent workflows enable AI to perform end-to-end task automation across developer and business ecosystems.",
+          url: "https://venturebeat.com/category/ai/",
+          urlToImage: "https://images.unsplash.com/photo-1677442136019-21780efad99a?w=800",
+          publishedAt: new Date().toISOString(),
+          source: { name: "VentureBeat" }
+        },
+        {
+          title: "Ethical AI Standards and Global Regulations in 2026",
+          description: "Governments and tech leaders align on safety guardrails, copyright attribution, and transparency standards.",
+          url: "https://theverge.com/ai-artificial-intelligence",
+          urlToImage: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800",
+          publishedAt: new Date().toISOString(),
+          source: { name: "The Verge" }
+        },
+        {
+          title: "Generative AI Models Reach New Benchmarks in Code Synthesis",
+          description: "Modern LLMs assist engineers with instant refactoring, automated testing, and architecture planning.",
+          url: "https://github.blog/category/ai/",
+          urlToImage: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800",
+          publishedAt: new Date().toISOString(),
+          source: { name: "GitHub Blog" }
+        },
+        {
+          title: "AI in Healthcare: Accelerating Drug Discovery & Diagnostics",
+          description: "Deep learning algorithms analyze complex biological structures to speed up therapeutic breakthroughs.",
+          url: "https://mit.edu/news/topic/artificial-intelligence",
+          urlToImage: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800",
+          publishedAt: new Date().toISOString(),
+          source: { name: "MIT News" }
+        },
+        {
+          title: "Computer Vision Advancements in Autonomous Vehicles & Robotics",
+          description: "Spatial intelligence and real-time vision processing enhance precision navigation.",
+          url: "https://technologyreview.com/topic/artificial-intelligence/",
+          urlToImage: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800",
+          publishedAt: new Date().toISOString(),
+          source: { name: "MIT Tech Review" }
+        },
+        {
+          title: "Cybersecurity Defenders Turn to Predictive AI to Stop Threats",
+          description: "Real-time anomaly detection neutralizes zero-day vulnerabilities before exploitation.",
+          url: "https://zdnet.com/topic/artificial-intelligence/",
+          urlToImage: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800",
+          publishedAt: new Date().toISOString(),
+          source: { name: "ZDNet Security" }
         }
       ]
     };
