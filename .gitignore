@@ -23,6 +23,11 @@ Thumbs.db
 # Build artifacts
 .dist/
 
+# Media files
+*.mp4
+*.avi
+*.mov
+
 # Agent/config files (not needed in repo)
 skills-lock.json
 .agents/
