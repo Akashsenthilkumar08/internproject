@@ -15,4 +15,4 @@ jobs:
       - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push --force https://Akashsenthilkumar08:$HF_TOKEN@huggingface.co/spaces/Akashsenthilkumar08/careerai-backend main
+        run: git push --force https://akaszz:$HF_TOKEN@huggingface.co/spaces/akaszz/careerai-backend main
